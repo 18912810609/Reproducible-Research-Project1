@@ -1,0 +1,81 @@
+# Project 1
+Haoran Zhu
+
+## 1. Code for reading in the dataset and/or processing the data
+
+```{r}
+activity<-read.csv("activity.csv")
+```
+
+## 2. Histogram of the total number of steps taken each day
+
+```{r}
+stepsPerDay<- aggregate(activity$steps,by=list(activity$date),FUN=sum,na.rm = TRUE)
+colnames(stepsPerDay)<-c("date","steps")
+hist(stepsPerDay$steps)
+```
+
+## 3. Mean and median number of steps taken each day
+
+```{r}
+stepsPerDayMean<-mean(stepsPerDay$steps)
+stepsPerDayMean
+stepsPerDayMedian<-median(stepsPerDay$steps)
+stepsPerDayMedian
+```
+
+## 4. Time series plot of the average number of steps taken
+
+```{r}
+stepsPerInterval<-aggregate(activity$steps,by=list(activity$interval), FUN=mean,na.rm = TRUE)
+colnames(stepsPerInterval)<-c("interval","steps")
+plot(stepsPerInterval$interval,stepsPerInterval$steps,type = "l")
+```
+
+## 5. The 5-minute interval that, on average, contains the maximum number of steps
+
+```{r}
+MaxstepsPerInterval<-stepsPerInterval[which.max(stepsPerInterval$steps),]$interval
+MaxstepsPerInterval
+```
+
+## 6. Code to describe and show a strategy for imputing missing data
+
+```{r}
+missingValue<-sum(is.na(activity$steps))
+missingValue
+Mean<-mean(activity$steps,na.rm=TRUE)
+Mean
+for(i in nrow(activity)){
+if(is.na(activity[i,]$steps)==TRUE){activity[i,]$steps<-Mean}
+}
+```
+
+## 7. Histogram of the total number of steps taken each day after missing values are imputed
+
+```{r}
+stepsPerDayWithNA<- aggregate(activity$steps,by=list(activity$date),FUN=sum)
+colnames(stepsPerDayWithNA)<-c("date","steps")
+hist(stepsPerDayWithNA$steps)
+```
+
+## 8. Panel plot comparing the average number of steps taken per 5-minute interval across weekdays and weekends
+
+```{r}
+activity$date <- as.Date(activity$date, format="%Y-%m-%d")
+activity$day<-weekdays(activity$date)
+for (i in 1:nrow(activity)) {
+  if (activity[i,]$day=="星期六"|activity[i,]$day=="星期日") {
+    activity[i,]$day<-"weekend"
+  }
+  else  {
+    activity[i,]$day<-"weekday"
+  }
+}
+Averagesteps<- aggregate(activity$steps,by=list(activity$day,activity$interval), FUN=mean,na.rm = TRUE)
+colnames(Averagesteps)<-c("day","interval","steps")
+library(lattice)
+xyplot(steps ~ interval | day, Averagesteps, type = "l", layout = c(1, 2), 
+       xlab = "Interval", ylab = "Steps")
+
+```
